@@ -64,6 +64,7 @@ from . import syslog
 from . import switchport
 from . import dns
 from . import bgp_cli
+from . import hosts_access
 
 
 # mock masic APIs for unit test
@@ -1426,6 +1427,8 @@ config.add_command(dns.dns)
 
 # Switchport module
 config.add_command(switchport.switchport)
+
+config.add_command(hosts_access.hosts_access)
 
 @config.command()
 @click.option('-y', '--yes', is_flag=True, callback=_abort_if_false,
