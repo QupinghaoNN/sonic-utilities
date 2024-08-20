@@ -1737,6 +1737,51 @@ def syslog(verbose):
 
     click.echo(tabulate(body, header, tablefmt="simple", stralign="left", missingval=""))
 
+# 'hosts-access' subcommand ("show runningconfiguration hosts-access")
+@runningconfiguration.command()
+@click.option('--verbose', is_flag=True, help="Enable verbose output")
+def hosts_access(verbose):
+    """Show hosts_access running configuration"""
+    headers = ['Daemon', "Allow Client", "Deny Client"]
+    parsed_data = {}
+
+    with open("/etc/hosts.allow") as allow_file:
+        allow = allow_file.readlines()
+    for line in allow:
+        line = line.strip()
+        # Ignore empty lines and comments
+        if not line or line.startswith('#'):
+            continue
+        # split the line into daemon and hosts
+        if ":" in line:
+            daemon, hosts = line.split(':', 1)
+            daemon = daemon.strip()
+            hosts = hosts.strip()
+            if daemon not in parsed_data :
+                parsed_data[daemon] = {"allow": [], "deny": []}
+            parsed_data[daemon]['allow'].extend(hosts.split())
+    
+    with open("/etc/hosts.deny") as deny_file:
+        deny = deny_file.readlines()
+    for line in deny:
+        line = line.strip()
+        # Ignore empty lines and comments
+        if not line or line.startswith('#'):
+            continue
+        # split the line into daemon and hosts
+        if ":" in line:
+            daemon, hosts = line.split(':', 1)
+            daemon = daemon.strip()
+            hosts = hosts.strip()
+            if daemon not in parsed_data :
+                parsed_data[daemon] = {"allow": [], "deny": []}
+            parsed_data[daemon]['deny'].extend(hosts.split())
+
+    data = []
+    for daemon, hosts in parsed_data.items():
+        data.add(daemon, ' '.join(hosts['allow']), ' '.join(hosts['deny']))
+
+    click.echo(tabulate(data, headers, tablefmt="simple", stralign='left', maxcolwidths=[20, 40, 40]))
 
 #
 # 'startupconfiguration' group ("show startupconfiguration ...")
